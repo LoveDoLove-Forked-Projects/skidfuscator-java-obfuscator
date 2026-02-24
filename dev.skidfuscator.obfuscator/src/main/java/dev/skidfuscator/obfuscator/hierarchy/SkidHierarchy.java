@@ -1,6 +1,7 @@
 package dev.skidfuscator.obfuscator.hierarchy;
 
 import dev.skidfuscator.obfuscator.Skidfuscator;
+import dev.skidfuscator.obfuscator.hierarchy.err.InvalidLambdaCallException;
 import dev.skidfuscator.obfuscator.hierarchy.matching.ClassMethodHash;
 import dev.skidfuscator.obfuscator.skidasm.*;
 import dev.skidfuscator.obfuscator.skidasm.cfg.SkidControlFlowGraph;
@@ -383,25 +384,8 @@ public class SkidHierarchy implements Hierarchy {
                                             if (!node.getMethods().isEmpty()) {
 
                                                 // [validation] cannot have more than one method in implicit function
-                                                if (node.getMethods().size() > 1) {
-                                                    throw new IllegalStateException(String.format(
-                                                            """
-                                                            -----------------------------------------------------
-                                                            /!\\ Skidfuscator failed to verify a lambda call! 
-                                                            Please report this to the developer...
-                                                            -----------------------------------------------------
-                                                            Bound: %s
-                                                            Target: %s
-                                                            Target Methods: %s
-                                                            -----------------------------------------------------
-                                                            """,
-                                                            boundFunc,
-                                                            node.getDisplayName(),
-                                                            node.getMethods().stream()
-                                                                    .map(MethodNode::toString)
-                                                                    .reduce("\n- ", (s, s2) -> s + "\n- " + s2)
-
-                                                    ));
+                                                if (node.getMethods().size() != 1) {
+                                                    throw new InvalidLambdaCallException(boundFunc, node);
                                                 }
 
                                                 // must be correct
@@ -411,6 +395,11 @@ public class SkidHierarchy implements Hierarchy {
                                         }
 
                                         if (methodNode != null) {
+                                            // [validation] Discovered lambda call must belong to a group
+                                            if (methodNode.getGroup() == null) {
+                                                throw new InvalidLambdaCallException(boundFunc, targetClass);
+                                            }
+
                                             methodNode.getGroup().setImplicitFunction(true);
                                             return;
                                         }

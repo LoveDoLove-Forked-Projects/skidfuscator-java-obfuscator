@@ -106,6 +106,10 @@ public class SkidGroup {
         return name.equals("<clinit>");
     }
 
+    public boolean isMixin() {
+        return mixin;
+    }
+
     public void setDesc(final String desc) {
         this.desc = desc;
 
@@ -145,7 +149,8 @@ public class SkidGroup {
                 || this.getInvokers().stream().anyMatch(SkidInvocation::isExempt)
                 || this.getInvokers().stream().anyMatch(SkidInvocation::isDynamic)
                 || this.isAnnotation()
-                || this.isEnumerator();
+                || this.isEnumerator()
+                || this.isMixin();
     }
     @Override
     public boolean equals(Object o) {
